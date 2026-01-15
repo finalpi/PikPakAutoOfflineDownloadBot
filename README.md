@@ -31,53 +31,77 @@
 pip install -r requirements.txt
 ```
 
-配置`config.py`文件信息：
+配置方式（二选一）：
 
-```python
-# TG机器人的令牌，tg找@BotFather创建机器人即可获取
-TOKEN = 'token'
-# TG用户ID，指定用户才能使用机器人
-ADMIN_IDS = ['12345678']
-# pikpak账号，可以为手机号、邮箱，支持任意多账号
-USER = ["example_user1", "example_user2"]
-# 账号对应的密码，注意与账号顺序对应！！！
-PASSWORD = ["example_password1", "example_password2"]
-# 自动删除配置，未配置默认开启自动删除，留空即可
-# AUTO_DELETE = {"example_user1": "True", "example_user2": "False"}
-AUTO_DELETE = {}
-# 以下分别为aria2 RPC的协议（http/https）、host、端口、密钥
-ARIA2_HTTPS = False
-ARIA2_HOST = "example.aria2.host"
-ARIA2_PORT = "port"
-ARIA2_SECRET = "secret"
-# aria2下载根目录
-ARIA2_DOWNLOAD_PATH = "/mnt/sda1/aria2/pikpak"
-# 可以自定义TG API，也可以保持默认
-TG_API_URL = 'https://api.telegram.org'
-# 自定义Pikpak离线下载路径
-PIKPAK_OFFLINE_PATH = "None"
+## 方式一：使用环境变量（推荐）
+
+复制 `.env.example` 为 `.env` 并编辑：
+
+```shell
+cp .env.example .env
+# 编辑 .env 文件，填入你的配置
 ```
 
-最后：
+然后设置环境变量并运行：
+
+```shell
+# Linux/Mac
+export $(cat .env | xargs) && python pikpakTgBot.py
+
+# Windows PowerShell
+Get-Content .env | ForEach-Object { if ($_ -match '^([^#].+?)=(.*)$') { [System.Environment]::SetEnvironmentVariable($matches[1], $matches[2]) } }; python pikpakTgBot.py
+```
+
+## 方式二：直接编辑 config.py
+
+直接修改 `config.py` 文件中的默认值即可。
+
+运行：
 
 ```shell
 python pikpakTgBot.py
 ```
 
-这样你的机器人就上线工作啦！当然最好还是使用如`pm2`等进程守护工具在后台守护运行。
+建议使用 `pm2` 等进程守护工具在后台运行。
 
-# Docker Compose 部署
+# Docker Compose 部署（推荐）
+
+使用 GitHub Container Registry 预构建镜像，无需本地构建：
 
 ```shell
-git clone 本项目
-# 编辑`config.py`文件，配置信息如上所述。
-# 构建镜像
-docker-compose build
-# 启动容器，后台运行
+# 1. 创建目录
+mkdir pikpakbot && cd pikpakbot
+
+# 2. 下载 docker-compose.yml 和 .env.example
+wget https://raw.githubusercontent.com/finalpi/PikPakAutoOfflineDownloadBot/master/docker-compose.yml
+wget https://raw.githubusercontent.com/finalpi/PikPakAutoOfflineDownloadBot/master/.env.example
+
+# 3. 复制并编辑配置文件
+cp .env.example .env
+# 编辑 .env 文件，填入你的配置
+
+# 4. 启动容器
 docker-compose up -d
 ```
 
-其他参考命令：
+## 环境变量说明
+
+| 变量名 | 必填 | 说明 | 示例 |
+|--------|------|------|------|
+| `TOKEN` | 是 | Telegram Bot Token | `123456:ABC-DEF` |
+| `ADMIN_IDS` | 是 | 允许使用的 TG 用户 ID，多个用逗号分隔 | `123,456` |
+| `PIKPAK_USER` | 是 | PikPak 账号，多个用逗号分隔 | `a@qq.com,b@qq.com` |
+| `PIKPAK_PASSWORD` | 是 | PikPak 密码，多个用逗号分隔 | `pwd1,pwd2` |
+| `ARIA2_HOST` | 是 | Aria2 RPC 地址 | `192.168.1.1` |
+| `ARIA2_PORT` | 是 | Aria2 RPC 端口 | `6800` |
+| `ARIA2_SECRET` | 是 | Aria2 RPC 密钥 | `your_secret` |
+| `ARIA2_DOWNLOAD_PATH` | 是 | Aria2 下载目录 | `/downloads` |
+| `ARIA2_HTTPS` | 否 | 是否使用 HTTPS，默认 `false` | `false` |
+| `TG_API_URL` | 否 | 自定义 TG API | `https://api.telegram.org` |
+| `PIKPAK_OFFLINE_PATH` | 否 | PikPak 离线下载路径 | `/My Pack` |
+| `AUTO_DELETE` | 否 | 自动删除配置（JSON格式） | `{"a@qq.com": "True"}` |
+
+## 其他参考命令
 
 ```shell
 # 查看容器状态
@@ -92,42 +116,23 @@ docker-compose up -d
 docker logs pikpakbot
 ```
 
-# Docker 部署
+# Docker 手动部署
 
-1. 将项目文件下载到本地或者直接`git clone`本项目。
-2. 编辑`config.py`文件，配置信息如上所述。
-3. 目录结构如下：
-```shell
-PikPakAutoOfflineDownloadBot
-├── Dockerfile
-├── README.md
-├── __init__.py
-├── config.py
-├── docker-compose.yml
-├── pikpakTgBot.py
-└── requirements.txt
-```
-
-4.制作docker镜像，运行容器
+如需本地构建镜像：
 
 ```shell
-cd /root/PikPakAutoOfflineDownloadBot
-```
+# 克隆项目
+git clone https://github.com/finalpi/PikPakAutoOfflineDownloadBot.git
+cd PikPakAutoOfflineDownloadBot
 
-```shell
-docker build . --tag pikpakbot
-```
+# 复制并编辑配置
+cp .env.example .env
+# 编辑 .env 文件
 
-```shell
-docker run \
-  --name=pikpakbot \
-  --restart=always \
-  -d \
-  -v /root/PikPakAutoOfflineDownloadBot:/code \
-  pikpakbot
+# 构建并运行
+docker build -t pikpakbot .
+docker run -d --name pikpakbot --restart=always --env-file .env pikpakbot
 ```
-
-6.运行文件采用挂载方式，如果需要修改配置，可以直接修改`/root/PikPakAutoOfflineDownloadBot`下的文件，然后重启容器即可。
 
 # 使用
 

@@ -1,10 +1,8 @@
 version: '3'
 services:
   pikpakbot:
-    image: ghcr.io/finalpi/pikpakautofflinedownloadbot:latest
+    image: ghcr.io/finalpi/pikpakautoofflinedownloadbot:latest
     container_name: pikpakbot
     restart: always
     env_file:
       - .env
-    volumes:
-      - ./downloads:/downloads

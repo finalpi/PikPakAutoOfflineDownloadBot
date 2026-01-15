@@ -1038,5 +1038,14 @@ dispatcher.add_handler(pikpak_handler)
 dispatcher.add_handler(clean_handler)
 dispatcher.add_handler(path_handler)
 
+# 设置 Bot 命令列表
+updater.bot.set_my_commands([
+    ('start', '获取帮助信息'),
+    ('p', '离线下载磁力到本地'),
+    ('clean', '清空指定账号网盘'),
+    ('account', '管理账号（发送/account查看使用帮助）'),
+    ('path', '管理离线下载路径'),
+])
+
 updater.start_polling()
 updater.idle()
